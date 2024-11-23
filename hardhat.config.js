@@ -1,19 +1,17 @@
 require("@nomicfoundation/hardhat-toolbox");
-require("dotenv").config();
-
 
 // besuUrl is the url where the bootnode a is deployed
-const besuUrl = process.env.BESU_URL_NODE_A;
+const besuUrl = "http://172.20.0.3:8545";
 
-// privateKey is the privateKey of the bootnode a which is the one that sign the tx that deploy the smart contract
-const privateKey = process.env.PRIVATE_KEY_BOOTNODE_A;
+// signerPK is the private key of the account that will deploy the contracts, in this case the deposit account
+const signerPK = "8f2a55949038a9610f50fb23b5883af3b4ecb3c3bb792cbcefbd1542c692be63";
 
 module.exports = {
   solidity: "0.8.27",
   networks: {
     besu: {
       url: besuUrl,
-      accounts: [privateKey],
+      accounts: [signerPK],
     },
   },
 };

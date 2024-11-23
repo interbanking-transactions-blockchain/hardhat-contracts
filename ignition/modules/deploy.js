@@ -1,12 +1,6 @@
-async function main() {
-    const [deployer] = await ethers.getSigners();
-  
-    console.log("Deploying contracts with the account:", deployer.address);
-  
-    console.log("Contracts deployed successfully!");
-  }
-  
-  main().catch((error) => {
-    console.error(error);
-    process.exitCode = 1;
-  });
+const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
+
+module.exports = buildModule("DeployModule", (m) => {
+  const bankAccounts = m.contract("BankAccounts");
+  return { bankAccounts };
+});
