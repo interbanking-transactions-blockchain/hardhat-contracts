@@ -8,6 +8,7 @@ contract BankAccounts {
         address account;
         string publicKey;
         string enode;
+        string rpcEndpoint;
     }
 
     // Mapping of bank nodes: public key => BankNode
@@ -19,8 +20,8 @@ contract BankAccounts {
     // ~ ~ ~ ~ ~ ~ ~ CREATE Methods ~ ~ ~ ~ ~ ~ ~ //
 
     // Add a new bank node
-    function addNode(string memory name, string memory publicKey, string memory enode, address account) public {
-        bankNodes[publicKey] = BankNode(name, account, publicKey, enode);
+    function addNode(string memory name, string memory publicKey, string memory enode, address account, string memory rpcEndpoint) public {
+        bankNodes[publicKey] = BankNode(name, account, publicKey, enode, rpcEndpoint);
         bankNodeCount++;
     }
 
@@ -49,17 +50,16 @@ contract BankAccounts {
         bankNodes[publicKey].account = account;
     }
 
+    // Update the rpc endpoint of a bank node
+    function updateNodeRpcEndpoint(string memory publicKey, string memory rpcEndpoint) public {
+        bankNodes[publicKey].rpcEndpoint = rpcEndpoint;
+    }
+
     // ~ ~ ~ ~ ~ ~ ~ REMOVE Methods ~ ~ ~ ~ ~ ~ ~ //
 
     // Remove a bank node
     function removeNode(string memory publicKey) public {
         delete bankNodes[publicKey];
-        // bankNodeCount--;
-        // // Burn all the reserves of the bank
-        // uint256 reserves = stableCoin.balanceOf(bankNodes[publicKey].account);
-        // if (reserves > 0) {
-        //     stableCoin.burnBank(bankNodes[publicKey].account, reserves);
-        // }
     }
 
     // ~ ~ ~ ~ ~ ~ ~ GET Methods ~ ~ ~ ~ ~ ~ ~ //
@@ -82,6 +82,11 @@ contract BankAccounts {
     // Get a bank node by its public key
     function getNode(string memory publicKey) public view returns (BankNode memory) {
         return bankNodes[publicKey];
+    }
+
+    // Get the rpc endpoint of a bank node
+    function getNodeRpcEndpoint(string memory publicKey) public view returns (string memory) {
+        return bankNodes[publicKey].rpcEndpoint;
     }
 
     // Check if a bank node exists
@@ -128,6 +133,30 @@ contract BankAccounts {
             index++;
         }
         return enodes;
+    }
+
+    // Get all aaddresses
+    function getAllAddresses() public view returns (address[] memory) {
+        address[] memory addresses = new address[](bankNodeCount);
+        uint256 index = 0;
+        for (uint256 i = 0; i < bankNodeCount; i++) {
+            BankNode storage node = bankNodes[string(abi.encodePacked(i))];
+            addresses[index] = node.account;
+            index++;
+        }
+        return addresses;
+    }
+
+    // Get all rpc endpoints
+    function getAllRpcEndpoints() public view returns (string[] memory) {
+        string[] memory rpcEndpoints = new string[](bankNodeCount);
+        uint256 index = 0;
+        for (uint256 i = 0; i < bankNodeCount; i++) {
+            BankNode storage node = bankNodes[string(abi.encodePacked(i))];
+            rpcEndpoints[index] = node.rpcEndpoint;
+            index++;
+        }
+        return rpcEndpoints;
     }
 
 }
