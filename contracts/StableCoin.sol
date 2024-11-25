@@ -10,7 +10,7 @@ contract StableCoin is ERC20PresetMinterPauser{
 
     constructor(address _adminAccount) ERC20PresetMinterPauser("StableCoin", "SC"){
         // Admin account plays the role of contract deployer and other important tasks that might be needed in the future development of the blockchain
-        require(adminAccount != address(0), "Invalid account");
+        require(_adminAccount != address(0), "Invalid account");
         adminAccount = _adminAccount;
         _setupRole(MINTER_ROLE, adminAccount);
         _setupRole(PAUSER_ROLE, adminAccount);

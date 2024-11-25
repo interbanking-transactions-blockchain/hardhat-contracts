@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.27;
 
-import "./StableCoin.sol";
-
 contract BankAccounts {
 
     struct BankNode {
@@ -18,16 +16,12 @@ contract BankAccounts {
     // Counter for the number of bank nodes
     uint256 public bankNodeCount;
 
-    // StableCoin contract
-    StableCoin public stableCoin;
-
     // ~ ~ ~ ~ ~ ~ ~ CREATE Methods ~ ~ ~ ~ ~ ~ ~ //
 
     // Add a new bank node
-    function addNode(string memory name, string memory publicKey, string memory enode, address account, uint256 reserves) public {
+    function addNode(string memory name, string memory publicKey, string memory enode, address account) public {
         bankNodes[publicKey] = BankNode(name, account, publicKey, enode);
         bankNodeCount++;
-        stableCoin.mintBank(account, reserves);
     }
 
     // ~ ~ ~ ~ ~ ~ ~ UPDATE Methods ~ ~ ~ ~ ~ ~ ~ //
@@ -60,12 +54,12 @@ contract BankAccounts {
     // Remove a bank node
     function removeNode(string memory publicKey) public {
         delete bankNodes[publicKey];
-        bankNodeCount--;
-        // Burn all the reserves of the bank
-        uint256 reserves = stableCoin.balanceOf(bankNodes[publicKey].account);
-        if (reserves > 0) {
-            stableCoin.burnBank(bankNodes[publicKey].account, reserves);
-        }
+        // bankNodeCount--;
+        // // Burn all the reserves of the bank
+        // uint256 reserves = stableCoin.balanceOf(bankNodes[publicKey].account);
+        // if (reserves > 0) {
+        //     stableCoin.burnBank(bankNodes[publicKey].account, reserves);
+        // }
     }
 
     // ~ ~ ~ ~ ~ ~ ~ GET Methods ~ ~ ~ ~ ~ ~ ~ //
@@ -93,6 +87,16 @@ contract BankAccounts {
     // Check if a bank node exists
     function nodeExists(string memory publicKey) public view returns (bool) {
         return keccak256(abi.encodePacked(bankNodes[publicKey].publicKey)) == keccak256(abi.encodePacked(publicKey));
+    }
+
+    // Check if an account exists
+    function accountExists(address account) public view returns (bool) {
+        for (uint256 i = 0; i < bankNodeCount; i++) {
+            if (bankNodes[string(abi.encodePacked(i))].account == account) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // Check if combination of node public key and bank name exists
