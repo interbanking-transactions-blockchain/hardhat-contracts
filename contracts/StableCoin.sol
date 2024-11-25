@@ -6,18 +6,27 @@ import "@openzeppelin/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol"
 
 contract StableCoin is ERC20PresetMinterPauser{
 
-    address private depositAccount;
+    address private adminAccount;
 
-    constructor(address _depositAccount) ERC20PresetMinterPauser("StableCoin", "SC"){
-        require(_depositAccount != address(0), "Invalid account");
-        depositAccount = _depositAccount;
-        _setupRole(MINTER_ROLE, depositAccount);
-        _mint(depositAccount, 1000000 * 10 ** 18);
+    constructor(address _adminAccount) ERC20PresetMinterPauser("StableCoin", "SC"){
+        // Admin account plays the role of contract deployer and other important tasks that might be needed in the future development of the blockchain
+        require(adminAccount != address(0), "Invalid account");
+        adminAccount = _adminAccount;
+        _setupRole(MINTER_ROLE, adminAccount);
+        _setupRole(PAUSER_ROLE, adminAccount);
     }
 
-    function depositAndMint(address account, uint256 amount) external {
-        require(account != address(0), "Invalid account");
+    function mintBank(address account, uint256 amount) external {
+        // This simulates the entrance of the bank, banks declare their EUR reserves as EUR is the intermediary currency.
+        // Each bank intially has their initial reserves as their balance, this will increase whenever they declare more reserves
+        require(hasRole(MINTER_ROLE, msg.sender), "Caller is not a minter");
         require(amount > 0, "Amount has to be greater than 0");
-        _transfer(depositAccount, account, amount);
+        _mint(account, amount);
+    }
+
+    function burnBank(address account, uint256 amount) external {
+        // This simulates the exit of the bank
+        require(hasRole(MINTER_ROLE, msg.sender), "Caller is not a minter");
+        _burn(account, amount);
     }
 }

@@ -5,8 +5,4 @@
 
 # For deployment in besu network this is not longer used
 
-npx hardhat ignition deploy ./ignition/modules/Lock.js --network besu
-
 npx hardhat ignition deploy ./ignition/modules/deploy.js --network besu
-
-npx hardhat ignition deploy ./ignition/modules/StableCoinDeploy.js --network besu

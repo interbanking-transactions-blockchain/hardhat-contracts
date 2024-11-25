@@ -1,44 +1,33 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.27;
 
+import "./StableCoin.sol";
+
 contract BankAccounts {
 
     struct BankNode {
         string name;
-        address[] accounts;
+        address account;
         string publicKey;
         string enode;
     }
 
     // Mapping of bank nodes: public key => BankNode
     mapping(string => BankNode) public bankNodes;
+
     // Counter for the number of bank nodes
     uint256 public bankNodeCount;
+
+    // StableCoin contract
+    StableCoin public stableCoin;
 
     // ~ ~ ~ ~ ~ ~ ~ CREATE Methods ~ ~ ~ ~ ~ ~ ~ //
 
     // Add a new bank node
-    function addNode(string memory name, string memory publicKey, string memory enode) public {
-        bankNodes[publicKey] = BankNode(name, new address[](0), publicKey, enode);
+    function addNode(string memory name, string memory publicKey, string memory enode, address account, uint256 reserves) public {
+        bankNodes[publicKey] = BankNode(name, account, publicKey, enode);
         bankNodeCount++;
-    }
-
-    // Add a new account to a bank node
-    function addAccount(string memory publicKey, address account) public {
-        BankNode storage node = bankNodes[publicKey];
-        // Check if the account already exists in the bank node
-        bool exists = false;
-        for (uint256 i = 0; i < node.accounts.length; i++) {
-            if (node.accounts[i] == account) {
-                exists = true;
-                break;
-            }
-        }
-        
-        // If the account does not exist, add it to the bank node
-        if (!exists) {
-            node.accounts.push(account);
-        }
+        stableCoin.mintBank(account, reserves);
     }
 
     // ~ ~ ~ ~ ~ ~ ~ UPDATE Methods ~ ~ ~ ~ ~ ~ ~ //
@@ -61,24 +50,21 @@ contract BankAccounts {
         bankNodes[publicKey].enode = enode;
     }
 
+    // Update the account of a bank node
+    function updateNodeAccount(string memory publicKey, address account) public {
+        bankNodes[publicKey].account = account;
+    }
+
     // ~ ~ ~ ~ ~ ~ ~ REMOVE Methods ~ ~ ~ ~ ~ ~ ~ //
 
     // Remove a bank node
     function removeNode(string memory publicKey) public {
         delete bankNodes[publicKey];
         bankNodeCount--;
-    }
-
-    // Remove an account from a bank node
-    function removeAccount(string memory publicKey, address account) public {
-        BankNode storage node = bankNodes[publicKey];
-        address[] storage accounts = node.accounts;
-        for (uint i = 0; i < accounts.length; i++) {
-            if (accounts[i] == account) {
-                accounts[i] = accounts[accounts.length - 1];
-                accounts.pop();
-                break;
-            }
+        // Burn all the reserves of the bank
+        uint256 reserves = stableCoin.balanceOf(bankNodes[publicKey].account);
+        if (reserves > 0) {
+            stableCoin.burnBank(bankNodes[publicKey].account, reserves);
         }
     }
 
@@ -89,9 +75,9 @@ contract BankAccounts {
         return bankNodes[publicKey].name;
     }
 
-    // Get the accounts of a bank node
-    function getNodeAccounts(string memory publicKey) public view returns (address[] memory) {
-        return bankNodes[publicKey].accounts;
+    // Get the account of a bank node
+    function getNodeAccount(string memory publicKey) public view returns (address) {
+        return bankNodes[publicKey].account;
     }
 
     // Get the enode of a bank node
@@ -107,18 +93,6 @@ contract BankAccounts {
     // Check if a bank node exists
     function nodeExists(string memory publicKey) public view returns (bool) {
         return keccak256(abi.encodePacked(bankNodes[publicKey].publicKey)) == keccak256(abi.encodePacked(publicKey));
-    }
-
-    // Check if an account exists in a bank node
-    function accountExists(string memory publicKey, address account) public view returns (bool) {
-        BankNode storage node = bankNodes[publicKey];
-        address[] storage accounts = node.accounts;
-        for (uint i = 0; i < accounts.length; i++) {
-            if (accounts[i] == account) {
-                return true;
-            }
-        }
-        return false;
     }
 
     // Check if combination of node public key and bank name exists
