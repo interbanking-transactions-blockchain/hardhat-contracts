@@ -17,11 +17,47 @@ contract BankAccounts {
     // Counter for the number of bank nodes
     uint256 public bankNodeCount;
 
+    string[] private publicKeys;
+
+    constructor() {
+        // Add genesis nodes of the blockchain
+        // THey must already be on the allowlist by default on their genesis files
+        addNode(
+            "Genesis node A",
+            "0x69e84b9c135d789b637ba454fdcf7c348b3fcee0713e248c1e3edcc652088563ae5a4fd0698f7f796b875bd8008c9197022e7c15c3680e8b7cb7ec68f8b33dfa",
+            "enode://69e84b9c135d789b637ba454fdcf7c348b3fcee0713e248c1e3edcc652088563ae5a4fd0698f7f796b875bd8008c9197022e7c15c3680e8b7cb7ec68f8b33dfa@172.20.0.3:30303",
+            address(0x42868199703c1E0c03f065592832B60683b2FF89),
+            "http://172.20.0.3:8545"
+        );
+        addNode(
+            "Genesis node B",
+            "0x18808d740470a14ca76548ca37643e69806f562b36453c4f72e36bc9f73e01bce9de5e924f4fd3a2540f748bd9afe198f9076ee9eebc200bb70e928d6cf43d20",
+            "enode://18808d740470a14ca76548ca37643e69806f562b36453c4f72e36bc9f73e01bce9de5e924f4fd3a2540f748bd9afe198f9076ee9eebc200bb70e928d6cf43d20@172.20.0.4:30303",
+            address(0xA3910a31FA74691699DcFF38393F0A9E15888CB7),
+            "http://172.20.0.4:8545"
+        );
+        addNode(
+            "Genesis node C",
+            "0x9d5ff4e2ed29f331e811e8b04374c96a1159d8ab11264e4e79b2a59583dfee6de14cf6b2051e3ba7d2cc58f638b9f9b6a1d89053a4de1fc02527d6b883c693d9",
+            "enode://9d5ff4e2ed29f331e811e8b04374c96a1159d8ab11264e4e79b2a59583dfee6de14cf6b2051e3ba7d2cc58f638b9f9b6a1d89053a4de1fc02527d6b883c693d9@172.20.0.5:30303",
+            address(0xC86173e09503f0E1E6579038142C45154F4128e5),
+            "http://172.20.0.5:8545"
+        );
+        addNode(
+            "Genesis node D",
+            "0x2eb312fe0877afffc6ea042438bbe33b7b4fcb273b06b1bb8b86237cc793d3837aa6b53c8d56b297c83c549c20f4ac69b3a9ddf0081c827d98f40fec2ef3eb56",
+            "enode://2eb312fe0877afffc6ea042438bbe33b7b4fcb273b06b1bb8b86237cc793d3837aa6b53c8d56b297c83c549c20f4ac69b3a9ddf0081c827d98f40fec2ef3eb56@172.20.0.6:30303",
+            address(0xfEd757455747c3E9F2716e0a7fA73aEE30556639),
+            "http://172.20.0.6:8545"
+        );
+    }
+
     // ~ ~ ~ ~ ~ ~ ~ CREATE Methods ~ ~ ~ ~ ~ ~ ~ //
 
     // Add a new bank node
     function addNode(string memory name, string memory publicKey, string memory enode, address account, string memory rpcEndpoint) public {
         bankNodes[publicKey] = BankNode(name, account, publicKey, enode, rpcEndpoint);
+        publicKeys.push(publicKey);
         bankNodeCount++;
     }
 
@@ -113,50 +149,11 @@ contract BankAccounts {
 
     // Get all bank nodes
     function getAllBankNodes() public view returns (BankNode[] memory) {
-        BankNode[] memory nodes = new BankNode[](bankNodeCount);
-        uint256 index = 0;
-        for (uint256 i = 0; i < bankNodeCount; i++) {
-            BankNode storage node = bankNodes[string(abi.encodePacked(i))];
-            nodes[index] = node;
-            index++;
+        BankNode[] memory nodes = new BankNode[](publicKeys.length);
+        for (uint256 i = 0; i < publicKeys.length; i++) {
+            nodes[i] = bankNodes[publicKeys[i]];
         }
         return nodes;
-    }
-
-    // Get all enodes
-    function getAllEnodes() public view returns (string[] memory) {
-        string[] memory enodes = new string[](bankNodeCount);
-        uint256 index = 0;
-        for (uint256 i = 0; i < bankNodeCount; i++) {
-            BankNode storage node = bankNodes[string(abi.encodePacked(i))];
-            enodes[index] = node.enode;
-            index++;
-        }
-        return enodes;
-    }
-
-    // Get all aaddresses
-    function getAllAddresses() public view returns (address[] memory) {
-        address[] memory addresses = new address[](bankNodeCount);
-        uint256 index = 0;
-        for (uint256 i = 0; i < bankNodeCount; i++) {
-            BankNode storage node = bankNodes[string(abi.encodePacked(i))];
-            addresses[index] = node.account;
-            index++;
-        }
-        return addresses;
-    }
-
-    // Get all rpc endpoints
-    function getAllRpcEndpoints() public view returns (string[] memory) {
-        string[] memory rpcEndpoints = new string[](bankNodeCount);
-        uint256 index = 0;
-        for (uint256 i = 0; i < bankNodeCount; i++) {
-            BankNode storage node = bankNodes[string(abi.encodePacked(i))];
-            rpcEndpoints[index] = node.rpcEndpoint;
-            index++;
-        }
-        return rpcEndpoints;
     }
 
 }
